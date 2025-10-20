@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PickStock - Game Mode</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="bg-effects">
+        <div class="stars"></div>
+        <div class="floating-particles"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">🎯</span>
+                <h1 class="logo-text">PickStock</h1>
+                <span class="logo-subtitle">Game Mode</span>
+            </div>
+            <div class="player-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Level</span>
+                    <span class="stat-value" id="playerLevel">1</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">EXP</span>
+                    <span class="stat-value" id="playerExp">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Picks</span>
+                    <span class="stat-value" id="totalPicks">0</span>
+                </div>
+            </div>
+        </div>
+        <div class="exp-bar">
+            <div class="exp-fill" id="expFill"></div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Mission Control -->
+        <section class="mission-control">
+            <div class="pick-zone">
+                <button id="pickButton" class="pick-button">
+                    <span class="button-icon">🎲</span>
+                    <span class="button-text">Pick Random</span>
+                    <span class="button-subtitle">Choose your destiny</span>
+                </button>
+                <div id="pickEffects" class="pick-effects"></div>
+                <div class="pick-instructions">
+                    <span class="instruction-icon">💡</span>
+                    <span class="instruction-text">Click the button or press SPACE to pick</span>
+                </div>
+            </div>
+            <div class="mission-stats">
+                <div class="mission-stat">
+                    <span class="mission-stat-value" id="itemCount">0</span>
+                    <span class="mission-stat-label">Items</span>
+                </div>
+                <div class="mission-stat">
+                    <span class="mission-stat-value" id="pickStreak">0</span>
+                    <span class="mission-stat-label">Streak</span>
+                </div>
+                <div class="mission-stat">
+                    <span class="mission-stat-value" id="maxStreak">0</span>
+                    <span class="mission-stat-label">Best</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Inventory Section -->
+        <section class="inventory-section">
+            <div class="inventory-header">
+                <h2 class="inventory-title">📦 My Items</h2>
+                <button class="add-button" id="addButton">
+                    <span class="add-icon">➕</span>
+                    <span class="add-text">Add Item</span>
+                </button>
+            </div>
+            <div class="inventory-grid" id="itemsGrid">
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon">📦</div>
+                    <h3 class="empty-title">No items yet!</h3>
+                    <p class="empty-description">Add your first item to start the adventure</p>
+                    <button class="empty-button" onclick="document.getElementById('addButton').click()">
+                        <span>🚀</span> Add First Item
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Add New Item</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form class="modal-form" id="itemForm">
+                <div class="form-group">
+                    <label class="form-label" for="title">Item Name</label>
+                    <input type="text" id="title" class="form-input" placeholder="Enter item name..." required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="url">URL (Optional)</label>
+                    <input type="url" id="url" class="form-input" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="note">Description</label>
+                    <textarea id="note" class="form-textarea" placeholder="Enter description..." rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary modal-close">
+                        <span>❌</span> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <span>💾</span> <span id="saveButtonText">Save</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Result Modal (overlay) -->
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal result-modal">
+            <div class="result-header">
+                <h3 class="result-title">🎯 Mission Complete!</h3>
+                <button class="modal-close" onclick="app.hideModal('resultModal')">&times;</button>
+            </div>
+            <div class="result-content">
+                <div class="result-item">
+                    <h4 class="result-item-name" id="resultItemName"></h4>
+                    <p class="result-item-description" id="resultItemDescription"></p>
+                    <a class="result-item-url" id="resultItemUrl" target="_blank" style="display: none;">Open Link</a>
+                </div>
+                <div class="result-stats">
+                    <div class="result-stat">
+                        <span class="result-stat-label">EXP Gained</span>
+                        <span class="result-stat-value" id="resultExp">+10</span>
+                    </div>
+                </div>
+            </div>
+            <div class="result-actions">
+                <button class="btn btn-primary" id="openLinkBtn" style="display: none;">
+                    <span>🔗</span> Open Link
+                </button>
+                <button class="btn btn-secondary" onclick="app.pickRandom()">
+                    <span>🎲</span> Pick Again
+                </button>
+                <button class="btn btn-secondary" onclick="app.hideModal('resultModal')">
+                    <span>✅</span> Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievement Toast -->
+    <div class="achievement-toast" id="achievementToast">
+        <div class="achievement-icon">🏆</div>
+        <div class="achievement-content">
+            <div class="achievement-title" id="achievementTitle">Achievement Unlocked!</div>
+            <div class="achievement-description" id="achievementDescription">You've reached a new milestone!</div>
+        </div>
+    </div>
+
+    <!-- Level Up Effect -->
+    <div class="level-up-effect" id="levelUpEffect">
+        <div class="level-up-content">
+            <div class="level-up-icon">⭐</div>
+            <div class="level-up-text">LEVEL UP!</div>
+            <div class="level-up-level" id="levelUpLevel">LEVEL 2</div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
