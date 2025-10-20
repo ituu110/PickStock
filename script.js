@@ -9,6 +9,7 @@ class PickStockGameApp {
     }
 
     init() {
+        this.ensureInventoryContainers();
         this.renderItems();
         this.updateStats();
         this.updatePlayerStats();
@@ -328,18 +329,69 @@ class PickStockGameApp {
     }
 
     // UI Management
+    ensureInventoryContainers() {
+        let itemsGrid = document.getElementById('itemsGrid');
+        if (!itemsGrid) {
+            const host = document.querySelector('.inventory-section') || document.querySelector('main') || document.body;
+            itemsGrid = document.createElement('div');
+            itemsGrid.id = 'itemsGrid';
+            itemsGrid.className = 'inventory-grid';
+            host.appendChild(itemsGrid);
+        }
+        let emptyState = document.getElementById('emptyState');
+        if (!emptyState && itemsGrid) {
+            emptyState = document.createElement('div');
+            emptyState.id = 'emptyState';
+            emptyState.className = 'empty-state';
+            emptyState.innerHTML = `
+                <div class="empty-icon">📦</div>
+                <h3 class="empty-title">No items yet!</h3>
+                <p class="empty-description">Add your first item to start the adventure</p>
+                <button class="empty-button" onclick="document.getElementById('addButton').click()">
+                    <span>🚀</span> Add First Item
+                </button>
+            `;
+            itemsGrid.appendChild(emptyState);
+        }
+    }
     renderItems() {
+        this.ensureInventoryContainers();
         const itemsGrid = document.getElementById('itemsGrid');
         const emptyState = document.getElementById('emptyState');
 
+        // Guard: items grid must exist; attempt to create if missing
+        if (!itemsGrid) {
+            console.warn('renderItems: #itemsGrid not found, recreating...');
+            this.ensureInventoryContainers();
+            const restored = document.getElementById('itemsGrid');
+            if (!restored) return;
+            itemsGrid = restored;
+        }
+
         if (this.items.length === 0) {
-            itemsGrid.style.display = 'none';
-            emptyState.style.display = 'block';
+            // Show empty state safely
+            itemsGrid.style.display = 'block';
+            if (emptyState) {
+                emptyState.style.display = 'block';
+            } else {
+                // Fallback: render empty state markup if it was replaced
+                itemsGrid.innerHTML = `
+                    <div class="empty-state" id="emptyState">
+                        <div class="empty-icon">📦</div>
+                        <h3 class="empty-title">No items yet!</h3>
+                        <p class="empty-description">Add your first item to start the adventure</p>
+                        <button class="empty-button" onclick="document.getElementById('addButton').click()">
+                            <span>🚀</span> Add First Item
+                        </button>
+                    </div>
+                `;
+            }
             return;
         }
 
+        // There are items: render the grid and hide empty state if present
         itemsGrid.style.display = 'grid';
-        emptyState.style.display = 'none';
+        if (emptyState) emptyState.style.display = 'none';
 
         itemsGrid.innerHTML = this.items.map(item => `
             <div class="item-card" data-id="${item.id}">
@@ -386,7 +438,10 @@ class PickStockGameApp {
         // Update EXP bar
         const expNeeded = this.getExpNeeded(this.playerData.level);
         const expPercent = (this.playerData.exp / expNeeded) * 100;
-        document.getElementById('expFill').style.width = `${expPercent}%`;
+        const expFill = document.getElementById('expFill');
+        if (expFill) {
+            expFill.style.width = `${expPercent}%`;
+        }
     }
 
     // Modal Management
@@ -595,11 +650,13 @@ class PickStockGameApp {
         document.getElementById('resultExp').textContent = `+${expGain}`;
         
         const urlElement = document.getElementById('resultItemUrl');
-        if (item.url) {
-            urlElement.href = item.url;
-            urlElement.style.display = 'inline-block';
-        } else {
-            urlElement.style.display = 'none';
+        if (urlElement) {
+            if (item.url) {
+                urlElement.href = item.url;
+                urlElement.style.display = 'inline-block';
+            } else {
+                urlElement.style.display = 'none';
+            }
         }
         
         this.showModal('resultModal');
